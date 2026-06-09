@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>镜助理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Home Screen */
+        #home-screen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px 20px 24px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            gap: 8px;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.4); }
+            50% { box-shadow: 0 0 60px rgba(0, 255, 136, 0.6); }
+        }
+
+        .logo svg {
+            width: 70px;
+            height: 70px;
+            fill: #0a0a0a;
+        }
+
+        .home-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 8px;
+            letter-spacing: 4px;
+        }
+
+        .home-subtitle {
+            font-size: 16px;
+            color: #00cc6a;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .btn {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 24px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 16px;
+            touch-action: manipulation;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #0a0a0a;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 255, 136, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00ff88;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .home-footer {
+            color: #00cc6a;
+            font-size: 14px;
+            opacity: 0.6;
+            margin-top: 40px;
+        }
+
+        /* Camera Screen */
+        #camera-screen {
+            flex-direction: column;
+            background: #000;
+            position: relative;
+        }
+
+        #video-element {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .camera-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            padding-top: 40px;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .camera-btn {
+            width: 52px;
+            height: 52px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #00ff88;
+            cursor: pointer;
+            touch-action: manipulation;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .camera-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: #00ff88;
+        }
+
+        .status-display {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .status-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scan-frame {
+            width: 280px;
+            height: 380px;
+            border: 3px solid #00ff88;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.3), inset 0 0 40px rgba(0, 255, 136, 0.1);
+            animation: scan-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scan-pulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.3), inset 0 0 40px rgba(0, 255, 136, 0.1); }
+            50% { box-shadow: 0 0 60px rgba(0, 255, 136, 0.5), inset 0 0 60px rgba(0, 255, 136, 0.2); }
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+            animation: scan-move 2s ease-in-out infinite;
+        }
+
+        @keyframes scan-move {
+            0% { top: 20px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 357px; opacity: 0; }
+        }
+
+        .scan-corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 4px solid #00ff88;
+        }
+
+        .scan-corner.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .scan-corner.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .scan-corner.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+        .scan-corner.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        .camera-bottom-bar {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding: 0 40px;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .capture-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            touch-action: manipulation;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .capture-btn.active {
+            animation: capture-pulse 0.5s ease-in-out infinite;
+            background: rgba(0, 255, 136, 0.4);
+        }
+
+        @keyframes capture-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .capture-inner {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        /* Result Screen - Success */
+        #result-screen {
+            flex-direction: column;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+            padding: 20px;
+            padding-top: 40px;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .success-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 204, 106, 0.2) 100%);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid #00ff88;
+        }
+
+        .success-badge svg {
+            width: 24px;
+            height: 24px;
+            fill: #00ff88;
+        }
+
+        .success-badge span {
+            color: #00ff88;
+            font-weight: 700;
+        }
+
+        .info-card {
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+
+        .info-item {
+            display: flex;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-label {
+            width: 100px;
+            font-weight: 700;
+            color: #00cc6a;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #00ff88;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .notice-card {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid rgba(255, 193, 7, 0.4);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .notice-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffc107;
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .notice-title svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffc107;
+        }
+
+        .notice-content {
+            color: #ffc107;
+            line-height: 1.8;
+            opacity: 0.9;
+        }
+
+        .result-actions {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Error Modal */
+        .error-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .error-modal.active {
+            display: flex;
+        }
+
+        .error-content {
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #ff4757;
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 0 60px rgba(255, 71, 87, 0.4);
+            animation: error-shake 0.5s ease-in-out;
+        }
+
+        @keyframes error-shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 71, 87, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .error-icon svg {
+            width: 48px;
+            height: 48px;
+            fill: #ff4757;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ff4757;
+            margin-bottom: 12px;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .error-btn {
+            width: 100%;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Settings Screen */
+        #settings-screen {
+            flex-direction: column;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            padding-top: 40px;
+            background: rgba(0, 255, 136, 0.05);
+            border-bottom: 2px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .back-btn {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .back-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: #00ff88;
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .settings-card {
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .settings-card-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #00ff88;
+            margin-bottom: 8px;
+        }
+
+        .settings-card-desc {
+            font-size: 14px;
+            color: #00cc6a;
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            color: #00ff88;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        .input-field:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .input-field::placeholder {
+            color: rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .hint-card {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .hint-card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffc107;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .hint-card-title svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffc107;
+        }
+
+        .hint-card-content {
+            color: #ffc107;
+            font-size: 14px;
+            line-height: 1.8;
+            opacity: 0.85;
+        }
+
+        #capture-canvas { display: none; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <div class="logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+            </div>
+            <div class="home-title">镜助理</div>
+            <div class="home-subtitle">智能人脸识别助手</div>
+            
+            <button class="btn btn-primary" onclick="startCamera()">
+                <svg viewBox="0 0 24 24" style="width:28px;height:28px;margin-right:12px;">
+                    <path fill="#0a0a0a" d="M12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm-.35-5h.7c.38 0 .7-.32.7-.7v-4.6c0-.38-.32-.7-.7-.7h-.7c-.38 0-.7.32-.7.7v4.6c0 .38.32.7.7.7z"/>
+                </svg>
+                开始识别
+            </button>
+            <button class="btn btn-secondary" onclick="showScreen('settings')">
+                <svg viewBox="0 0 24 24" style="width:28px;height:28px;margin-right:12px;">
+                    <path fill="#00ff88" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5zm7.5-.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1zm-14 0a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1zm6-9a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h1zm0 15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h1zm9.5-7.5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1zm-14 0a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1z"/>
+                </svg>
+                API设置
+            </button>
+            
+            <div class="home-footer">智能识别，精准匹配</div>
+        </div>
+
+        <!-- Camera Screen -->
+        <div id="camera-screen" class="screen">
+            <video id="video-element" autoplay playsinline muted></video>
+            <div class="camera-overlay">
+                <div class="camera-top-bar">
+                    <button class="camera-btn" onclick="backFromCamera()">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                    </button>
+                    <div class="status-display">
+                        <div id="status-text" class="status-text">正在扫描...</div>
+                    </div>
+                    <div style="width:52px;"></div>
+                </div>
+                <div class="scan-overlay">
+                    <div class="scan-frame">
+                        <div class="scan-line"></div>
+                        <div class="scan-corner top-left"></div>
+                        <div class="scan-corner top-right"></div>
+                        <div class="scan-corner bottom-left"></div>
+                        <div class="scan-corner bottom-right"></div>
+                    </div>
+                </div>
+                <div class="camera-bottom-bar">
+                    <button class="camera-btn" onclick="flipCamera()">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 12c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3zm13-5v4h-2V8.41l-2.54 2.54c-1.31.99-2.95 1.62-4.72 1.85V15h-1.48v-2.2c-1.77-.23-3.41-.86-4.72-1.85L6 8.41V11H4V7h4v2l2.54 2.54c.94.71 2.03 1.24 3.21 1.56V11h.5v2.1c1.18-.32 2.27-.85 3.21-1.56L20 9V7h4z"/>
+                        </svg>
+                    </button>
+                    <button id="capture-button" class="capture-btn" onclick="capturePhoto()">
+                        <div class="capture-inner"></div>
+                    </button>
+                    <div style="width:52px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen">
+            <div class="result-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <div class="result-title">识别结果</div>
+                <div class="success-badge">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <span>匹配成功</span>
+                </div>
+            </div>
+            
+            <div class="info-card" id="info-card">
+                <div class="info-item">
+                    <div class="info-label">姓名</div>
+                    <div class="info-value" id="info-name">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">所属学院</div>
+                    <div class="info-value" id="info-college">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">专业</div>
+                    <div class="info-value" id="info-major">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">年级</div>
+                    <div class="info-value" id="info-grade">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">学号</div>
+                    <div class="info-value" id="info-student-id">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">个人简介</div>
+                    <div class="info-value" id="info-bio">-</div>
+                </div>
+            </div>
+            
+            <div class="notice-card" id="notice-card">
+                <div class="notice-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                    <span id="notice-title">重要提示</span>
+                </div>
+                <div class="notice-content" id="notice-content">-</div>
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn btn-primary" onclick="startCamera()">
+                    继续识别
+                </button>
+                <button class="btn btn-secondary" onclick="showScreen('home')">
+                    返回首页
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen">
+            <div class="settings-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <div class="header-title">API设置</div>
+                <div style="width:52px;"></div>
+            </div>
+            
+            <div class="settings-content">
+                <div class="settings-card">
+                    <div class="settings-card-title">豆包视觉API Key</div>
+                    <div class="settings-card-desc">请在火山引擎官网获取API Key</div>
+                    <input type="password" id="api-key-input" class="input-field" placeholder="请输入API Key">
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+                        <button class="btn btn-secondary" onclick="clearApiKey()">清除</button>
+                    </div>
+                </div>
+                
+                <div class="hint-card">
+                    <div class="hint-card-title">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                        </svg>
+                        <span>获取API Key</span>
+                    </div>
+                    <div class="hint-card-content">
+                        1. 访问火山引擎官网<br>
+                        2. 开通豆包视觉API服务<br>
+                        3. 创建并复制API Key
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="error-modal">
+            <div class="error-content">
+                <div class="error-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                </div>
+                <div class="error-title">人脸不匹配</div>
+                <div class="error-message">无对应录入信息</div>
+                <button class="error-btn" onclick="closeErrorModal()">重新识别</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="capture-canvas"></canvas>
+
+    <script>
+        // 人脸库数据
+        const faceDatabase = {
+            '1.png': {
+                name: '苏苏',
+                college: '外国语学院',
+                major: '英语',
+                grade: '2025级 大一',
+                studentId: '2025070815',
+                bio: '擅长口语交流，现为校辩论队成员',
+                noticeTitle: '申报事项',
+                noticeContent: '外语演讲大赛报名\n申报截止时间：2026年06月10日'
+            }
+        };
+
+        let videoElement = null;
+        let currentStream = null;
+        let facingMode = 'user';
+        let detectionInterval = null;
+        let doubaoApiKey = null;
+        let isDetecting = false;
+        let lastDetectionTime = 0;
+        let currentFaceData = null;
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenName + '-screen').classList.add('active');
+            
+            if (screenName === 'settings') {
+                const savedKey = localStorage.getItem('doubao_api_key');
+                if (savedKey) {
+                    document.getElementById('api-key-input').value = savedKey;
+                    doubaoApiKey = savedKey;
+                }
+            }
+        }
+
+        async function startCamera() {
+            showScreen('camera');
+            document.getElementById('status-text').textContent = '正在扫描...';
+            document.getElementById('capture-button').classList.remove('active');
+            await initCamera();
+            startRealTimeDetection();
+        }
+
+        async function initCamera() {
+            try {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+                
+                videoElement = document.getElementById('video-element');
+                
+                const isLocal = window.location.hostname === 'localhost' || 
+                               window.location.hostname === '127.0.0.1' ||
+                               window.location.protocol === 'https:';
+                
+                if (!isLocal && window.location.protocol === 'file:') {
+                    alert('提示：相机功能需要在 HTTPS 或 localhost 环境下使用。\n\n当前是本地文件打开，请通过本地服务器访问。');
+                }
+                
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+                
+                videoElement.srcObject = currentStream;
+                await videoElement.play();
+            } catch (e) {
+                console.error('Camera error:', e);
+                let errorMsg = '无法访问相机，请检查权限设置。';
+                if (window.location.protocol === 'file:') {
+                    errorMsg += '\n\n提示：请通过本地服务器访问此页面（不是直接双击HTML文件）。';
+                }
+                alert(errorMsg);
+            }
+        }
+
+        function flipCamera() {
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            initCamera();
+        }
+
+        function backFromCamera() {
+            stopRealTimeDetection();
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            showScreen('home');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                localStorage.setItem('doubao_api_key', key);
+                doubaoApiKey = key;
+                alert('API Key 已保存！');
+            } else {
+                alert('请输入有效的API Key');
+            }
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('doubao_api_key');
+            document.getElementById('api-key-input').value = '';
+            doubaoApiKey = null;
+            alert('API Key 已清除！');
+        }
+
+        function startRealTimeDetection() {
+            if (detectionInterval) return;
+            
+            detectionInterval = setInterval(() => {
+                if (!videoElement || !videoElement.videoWidth) return;
+                
+                if (!doubaoApiKey) {
+                    doubaoApiKey = localStorage.getItem('doubao_api_key');
+                }
+                
+                if (!doubaoApiKey) {
+                    updateStatusUI('请先配置API Key');
+                    return;
+                }
+                
+                const now = Date.now();
+                if (now - lastDetectionTime > 1500 && !isDetecting) {
+                    detectFace();
+                }
+            }, 500);
+        }
+
+        function stopRealTimeDetection() {
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+        }
+
+        async function detectFace() {
+            console.log('=== detectFace 开始 ===');
+            
+            isDetecting = true;
+            lastDetectionTime = Date.now();
+            
+            try {
+                const canvas = document.getElementById('capture-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = videoElement.videoWidth || 640;
+                canvas.height = videoElement.videoHeight || 480;
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                const cameraImage = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // 遍历人脸库进行匹配
+                let matched = false;
+                for (const [imageName, faceData] of Object.entries(faceDatabase)) {
+                    console.log('尝试匹配:', imageName);
+                    
+                    // 先检查图片是否存在
+                    const refImage = await loadImage(imageName);
+                    if (!refImage) continue;
+                    
+                    // 转换参考图片为base64
+                    const refCanvas = document.createElement('canvas');
+                    refCanvas.width = refImage.width;
+                    refCanvas.height = refImage.height;
+                    const refCtx = refCanvas.getContext('2d');
+                    refCtx.drawImage(refImage, 0, 0);
+                    const refImageData = refCanvas.toDataURL('image/jpeg', 0.7);
+                    
+                    const result = await callDoubaoVisionAPI(refImageData, cameraImage);
+                    console.log('API结果:', result);
+                    
+                    if (result.success && result.match && result.match > 70) {
+                        currentFaceData = faceData;
+                        matched = true;
+                        updateStatusUI('匹配成功！');
+                        document.getElementById('capture-button').classList.add('active');
+                        break;
+                    }
+                }
+                
+                if (!matched) {
+                    updateStatusUI('正在扫描...');
+                }
+                
+            } catch (e) {
+                console.error('Detection error:', e);
+                updateStatusUI('识别错误');
+            }
+            
+            isDetecting = false;
+            console.log('=== detectFace 结束 ===');
+        }
+
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = src;
+            });
+        }
+
+        async function callDoubaoVisionAPI(referenceImage, cameraImage) {
+            if (!doubaoApiKey) {
+                doubaoApiKey = localStorage.getItem('doubao_api_key');
+            }
+            
+            if (!doubaoApiKey) {
+                return {
+                    success: false,
+                    error: '请先在设置中配置API Key'
+                };
+            }
+            
+            try {
+                const prompt = `任务：对比两张图片中的人脸是否为同一个人。
+参考图片是已知人员的照片，摄像头图片是待识别的照片。
+
+请返回JSON格式：
+{
+  "match": 匹配度0-100的整数,
+  "isSamePerson": true/false
+}
+
+如果是同一个人，match给80-100；如果不是，给0-30。
+只返回JSON，不要其他内容。`;
+                
+                const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/responses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + doubaoApiKey
+                    },
+                    body: JSON.stringify({
+                        model: 'doubao-seed-1-8-251228',
+                        input: [
+                            {
+                                role: 'user',
+                                content: [
+                                    { type: 'input_image', image_url: referenceImage },
+                                    { type: 'input_image', image_url: cameraImage },
+                                    { type: 'input_text', text: prompt }
+                                ]
+                            }
+                        ]
+                    })
+                });
+                
+                if (!response.ok) {
+                    return {
+                        success: false,
+                        error: 'API错误: ' + response.status
+                    };
+                }
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                let content = '';
+                if (result.output && result.output.length > 0) {
+                    for (const outputItem of result.output) {
+                        if (outputItem.type === 'message' && outputItem.content && outputItem.content.length > 0) {
+                            content = outputItem.content[0].text || '';
+                            break;
+                        }
+                    }
+                }
+                
+                console.log('Extracted content:', content);
+                
+                let jsonStr = content;
+                const startIdx = jsonStr.indexOf('{');
+                const endIdx = jsonStr.lastIndexOf('}');
+                
+                if (startIdx !== -1 && endIdx !== -1) {
+                    jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+                    console.log('Cleaned JSON:', jsonStr);
+                    
+                    try {
+                        const parsed = JSON.parse(jsonStr);
+                        console.log('✅ Parsed JSON:', parsed);
+                        return {
+                            success: true,
+                            match: Math.max(0, Math.min(100, parsed.match || 0)),
+                            isSamePerson: parsed.isSamePerson || false
+                        };
+                    } catch (parseError) {
+                        console.error('❌ JSON解析失败:', parseError);
+                    }
+                }
+                
+                return {
+                    success: true,
+                    match: 50,
+                    isSamePerson: false
+                };
+                
+            } catch (e) {
+                console.error('Doubao API error:', e);
+                return {
+                    success: false,
+                    error: e.message || '网络错误'
+                };
+            }
+        }
+
+        function updateStatusUI(text) {
+            const statusEl = document.getElementById('status-text');
+            if (statusEl) {
+                statusEl.textContent = text;
+            }
+        }
+
+        function capturePhoto() {
+            if (!currentFaceData) {
+                showErrorModal();
+                return;
+            }
+            
+            stopRealTimeDetection();
+            
+            // 显示结果
+            document.getElementById('info-name').textContent = currentFaceData.name;
+            document.getElementById('info-college').textContent = currentFaceData.college;
+            document.getElementById('info-major').textContent = currentFaceData.major;
+            document.getElementById('info-grade').textContent = currentFaceData.grade;
+            document.getElementById('info-student-id').textContent = currentFaceData.studentId;
+            document.getElementById('info-bio').textContent = currentFaceData.bio;
+            document.getElementById('notice-title').textContent = currentFaceData.noticeTitle;
+            document.getElementById('notice-content').textContent = currentFaceData.noticeContent;
+            
+            showScreen('result');
+        }
+
+        function showErrorModal() {
+            document.getElementById('error-modal').classList.add('active');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('error-modal').classList.remove('active');
+        }
+
+        showScreen('home');
+    </script>
+</body>
+</html>
