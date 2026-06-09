@@ -634,6 +634,55 @@
         }
 
         #capture-canvas { display: none; }
+
+        /* 人员信息浮层 */
+        .person-info-overlay {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 20, 10, 0.7);
+            border: 2px solid rgba(0, 255, 136, 0.5);
+            border-radius: 16px;
+            padding: 20px;
+            display: none;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .person-info-overlay.active {
+            display: block;
+        }
+
+        .person-info-item {
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: rgba(0, 255, 136, 0.85);
+            line-height: 1.5;
+        }
+
+        .person-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .person-info-label {
+            font-weight: 600;
+            color: rgba(0, 204, 106, 0.9);
+        }
+
+        .person-info-bold {
+            font-weight: 800;
+            color: rgba(0, 255, 136, 1);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .person-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: rgba(0, 255, 136, 1);
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
@@ -688,13 +737,18 @@
                         <div class="scan-corner bottom-right"></div>
                     </div>
                 </div>
+                <!-- 人员信息浮层 -->
+                <div id="person-info-overlay" class="person-info-overlay">
+                    <div id="person-name" class="person-name"></div>
+                    <div id="person-info-items"></div>
+                </div>
                 <div class="camera-bottom-bar">
                     <button class="camera-btn" onclick="flipCamera()">
                         <svg viewBox="0 0 24 24">
                             <path d="M9 12c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3zm13-5v4h-2V8.41l-2.54 2.54c-1.31.99-2.95 1.62-4.72 1.85V15h-1.48v-2.2c-1.77-.23-3.41-.86-4.72-1.85L6 8.41V11H4V7h4v2l2.54 2.54c.94.71 2.03 1.24 3.21 1.56V11h.5v2.1c1.18-.32 2.27-.85 3.21-1.56L20 9V7h4z"/>
                         </svg>
                     </button>
-                    <button id="capture-button" class="capture-btn" onclick="capturePhoto()">
+                    <button id="capture-button" class="capture-btn" onclick="closePersonInfo()">
                         <div class="capture-inner"></div>
                     </button>
                     <div style="width:52px;"></div>
@@ -826,14 +880,24 @@
         // 人脸库数据
         const faceDatabase = {
             '图片1.png': {
-                name: '苏苏',
+                name: '额额😓',
                 college: '外国语学院',
                 major: '英语',
                 grade: '2025级 大一',
                 studentId: '2025070815',
                 bio: '擅长口语交流，现为校辩论队成员',
-                noticeTitle: '申报事项',
+                noticeTitle: '！申报事项',
                 noticeContent: '外语演讲大赛报名\n申报截止时间：2026年06月10日'
+            },
+            '图片2.png': {
+                name: '菲菲',
+                college: '经济管理学院',
+                major: '电子商务',
+                grade: '2025级 大一',
+                studentId: '2025021632',
+                bio: '做事细心，常参与校园活动策划工作',
+                noticeTitle: '！事项',
+                noticeContent: '询问大创进度'
             }
         };
 
@@ -863,6 +927,8 @@
             showScreen('camera');
             document.getElementById('status-text').textContent = '正在扫描...';
             document.getElementById('capture-button').classList.remove('active');
+            document.getElementById('person-info-overlay').classList.remove('active');
+            currentFaceData = null;
             await initCamera();
             startRealTimeDetection();
         }
@@ -1004,6 +1070,7 @@
                         matched = true;
                         updateStatusUI('匹配成功！');
                         document.getElementById('capture-button').classList.add('active');
+                        showPersonInfo(faceData);
                         break;
                     }
                 }
@@ -1019,6 +1086,76 @@
             
             isDetecting = false;
             console.log('=== detectFace 结束 ===');
+        }
+
+        function showPersonInfo(faceData) {
+            const overlay = document.getElementById('person-info-overlay');
+            const nameEl = document.getElementById('person-name');
+            const itemsEl = document.getElementById('person-info-items');
+            
+            nameEl.textContent = faceData.name;
+            
+            // 构建信息项
+            let html = '';
+            
+            if (faceData.college) {
+                html += `<div class="person-info-item">
+                    <span class="person-info-label">所属学院：</span>${faceData.college}
+                </div>`;
+            }
+            
+            if (faceData.major) {
+                html += `<div class="person-info-item">
+                    <span class="person-info-label">专业：</span>${faceData.major}
+                </div>`;
+            }
+            
+            if (faceData.grade) {
+                html += `<div class="person-info-item">
+                    <span class="person-info-label">年级：</span>${faceData.grade}
+                </div>`;
+            }
+            
+            if (faceData.studentId) {
+                html += `<div class="person-info-item">
+                    <span class="person-info-label">学号：</span>${faceData.studentId}
+                </div>`;
+            }
+            
+            if (faceData.bio) {
+                html += `<div class="person-info-item">
+                    <span class="person-info-label">个人简介：</span>${faceData.bio}
+                </div>`;
+            }
+            
+            if (faceData.noticeTitle) {
+                const isBold = faceData.noticeTitle.startsWith('！');
+                const title = isBold ? faceData.noticeTitle.substring(1) : faceData.noticeTitle;
+                html += `<div class="person-info-item ${isBold ? 'person-info-bold' : ''}">
+                    <span class="person-info-label">${faceData.noticeTitle}：</span>
+                </div>`;
+            }
+            
+            if (faceData.noticeContent) {
+                const isBold = faceData.noticeTitle && faceData.noticeTitle.startsWith('！');
+                const lines = faceData.noticeContent.split('\n');
+                for (const line of lines) {
+                    html += `<div class="person-info-item ${isBold ? 'person-info-bold' : ''}">
+                        ${line}
+                    </div>`;
+                }
+            }
+            
+            itemsEl.innerHTML = html;
+            overlay.classList.add('active');
+        }
+
+        function closePersonInfo() {
+            const overlay = document.getElementById('person-info-overlay');
+            overlay.classList.remove('active');
+            currentFaceData = null;
+            document.getElementById('capture-button').classList.remove('active');
+            updateStatusUI('正在扫描...');
         }
 
         function loadImage(src) {
